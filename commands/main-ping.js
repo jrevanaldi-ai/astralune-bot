@@ -11,7 +11,6 @@ export async function execute(ctx) {
   const { sock, message } = ctx;
 
   const startTime = Date.now();
-  const response = await sock.sendMessage(message.key.remoteJid, { text: 'Pong! 🏓' }, { quoted: message });
   const endTime = Date.now();
 
   const latency = endTime - startTime;
