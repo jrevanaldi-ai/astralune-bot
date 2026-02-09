@@ -20,7 +20,7 @@ export function writeJSON(filePath, data) {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    
+
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
   } catch (error) {
     console.error(`Error writing JSON file ${filePath}:`, error);
@@ -42,7 +42,7 @@ export function isDirectory(dirPath) {
 
 export function getAllFiles(dirPath, ext = '.js') {
   if (!fs.existsSync(dirPath)) return [];
-  
+
   const files = fs.readdirSync(dirPath);
   return files.filter(file => path.extname(file) === ext);
 }
@@ -72,30 +72,29 @@ export function getRandomElement(array) {
 
 export function isValidWA(number) {
   const cleanedNumber = number.replace(/\D/g, '');
-  
+
   if (cleanedNumber.length < 10 || cleanedNumber.length > 15) {
     return false;
   }
-  
+
   if (!/^\d/.test(cleanedNumber)) {
     return false;
   }
-  
+
   return true;
 }
 
 export function cleanWA(number) {
   let cleanedNumber = number.replace(/\D/g, '');
-  
+
   if (cleanedNumber.startsWith('0')) {
     cleanedNumber = '62' + cleanedNumber.substring(1);
   } else if (cleanedNumber.startsWith('62')) {
-    // Sudah benar
+    cleanedNumber = '62' + cleanedNumber;
   } else if (cleanedNumber.startsWith('8')) {
-    // Format lokal Indonesia
     cleanedNumber = '62' + cleanedNumber;
   }
-  
+
   return cleanedNumber;
 }
 
