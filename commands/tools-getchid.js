@@ -8,26 +8,48 @@ export const handler = {
 export async function execute(ctx) {
   const { sock, message, args } = ctx;
 
-  try {
-    // Ambil ID dari chat saat ini (bisa private chat, grup, atau channel)
-    const chatId = message.key.remoteJid;
+  if (args.length === 0) {
+    await sock.sendMessage(message.key.remoteJid, {
+      text: 'Gunakan perintah ini untuk mendapatkan ID channel dari URL channel WhatsApp.\nContoh: .getchid https://whatsapp.com/newsletter/CHANNEL_ID'
+    }, { quoted: message });
+    return;
+  }
 
-    // Deteksi jenis chat
-    let chatType = 'Private Chat';
-    if (chatId.endsWith('@g.us')) {
-      chatType = 'Group';
-    } else if (chatId.endsWith('@newsletter')) {
-      chatType = 'Newsletter Channel';
-    } else if (chatId.endsWith('@s.whatsapp.net')) {
-      chatType = 'Private Chat';
+  const url = args[0];
+
+  try {
+    // Validasi apakah input adalah URL
+    let channelId = null;
+    
+    // Cocokkan pola URL channel WhatsApp
+    const channelUrlPattern = /(?:https?:\/\/)?(?:www\.)?whatsapp\.com\/newsletter\/([A-Za-z0-9._-]+)/i;
+    const match = url.match(channelUrlPattern);
+    
+    if (match && match[1]) {
+      // Ambil ID channel dari URL
+      const channelIdentifier = match[1];
+      // Format ID channel newsletter di WhatsApp
+      channelId = `${channelIdentifier}@newsletter`;
+    } else {
+      // Jika tidak cocok dengan pola URL, coba cocokkan dengan ID langsung
+      if (url.includes('@newsletter')) {
+        channelId = url;
+      } else {
+        // Jika tidak dalam format URL atau ID langsung, beri tahu pengguna
+        await sock.sendMessage(message.key.remoteJid, {
+          text: 'Format URL tidak valid. Gunakan format: https://whatsapp.com/newsletter/CHANNEL_ID'
+        }, { quoted: message });
+        return;
+      }
     }
 
     const responseText = `
-*Informasi Chat Saat Ini:*
-*Jenis:* ${chatType}
-*ID:* ${chatId}
+*Informasi Channel:*
+*URL:* ${url}
+*ID Channel:* ${channelId}
+*Jenis:* Newsletter Channel
 
-*Catatan:* Ini adalah ID unik dari chat ini. ID ini bisa digunakan untuk berbagai keperluan administrasi bot.
+*Catatan:* Ini adalah ID unik dari channel WhatsApp yang bisa digunakan untuk berbagai keperluan.
     `.trim();
 
     await sock.sendMessage(message.key.remoteJid, {
@@ -35,9 +57,9 @@ export async function execute(ctx) {
     }, { quoted: message });
 
   } catch (error) {
-    console.error('Get Chat ID error:', error);
+    console.error('Get Channel ID error:', error);
     await sock.sendMessage(message.key.remoteJid, {
-      text: `Terjadi kesalahan saat mengambil informasi chat: ${error.message}`
+      text: `Terjadi kesalahan saat memproses URL: ${error.message}`
     }, { quoted: message });
   }
 }
