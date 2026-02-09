@@ -126,7 +126,7 @@ export async function downloadFromUrl(url) {
         }
         
         // Buat nama file yang aman
-        const cleanTitle = result.title ? result.title.replace(/[\/\\:*?"<>|]/g, '_') : 'media';
+        const cleanTitle = result.title ? result.title.replace(/[\/\\:*?"<>|]/g, '_').replace(/[^\w\s-]/g, '') : 'media';
         const filename = cleanTitle + extension;
         
         // Kembalikan informasi media
