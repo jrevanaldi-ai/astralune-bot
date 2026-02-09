@@ -3,8 +3,8 @@ import { formatNumber } from '../utils/index.js';
 
 export const handler = {
   tag: 'search',
-  cmd: ['search-npm', 'npm-search'],
-  aliases: ['npm', 'npms', 'find-npm'],
+  cmd: ['search-npm'],
+  aliases: ['npm'],
   owner: false
 };
 

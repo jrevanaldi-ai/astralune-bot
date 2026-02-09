@@ -3,8 +3,8 @@ import { formatNumber } from '../utils/index.js';
 
 export const handler = {
   tag: 'search',
-  cmd: ['search-github', 'github-search'],
-  aliases: ['github', 'gh', 'find-github'],
+  cmd: ['search-github'],
+  aliases: ['github'],
   owner: false
 };
 
