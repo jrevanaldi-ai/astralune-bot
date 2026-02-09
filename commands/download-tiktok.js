@@ -10,14 +10,28 @@ export const handler = {
 export async function execute(ctx) {
   const { sock, message, args } = ctx;
 
-  if (args.length === 0) {
+  let url = args[0];
+  
+  // Jika tidak ada URL di argumen, cek apakah ada pesan yang direply
+  if (!url && message.message.extendedTextMessage?.contextInfo?.quotedMessage) {
+    const quotedMessage = message.message.extendedTextMessage.contextInfo.quotedMessage;
+    
+    // Cek apakah pesan yang direply berisi URL TikTok
+    if (quotedMessage.conversation) {
+      const quotedText = quotedMessage.conversation;
+      const tiktokUrlMatch = quotedText.match(/https?:\/\/(www\.)?tiktok\.com\/.*/i);
+      if (tiktokUrlMatch) {
+        url = tiktokUrlMatch[0];
+      }
+    }
+  }
+
+  if (!url) {
     await sock.sendMessage(message.key.remoteJid, {
-      text: 'Gunakan perintah ini untuk mengunduh video dari TikTok.\nContoh: .tiktok https://www.tiktok.com/@username/video/123456789'
+      text: 'Gunakan perintah ini untuk mengunduh video dari TikTok.\nContoh: .tiktok https://www.tiktok.com/@username/video/123456789\nAtau reply pesan yang berisi URL TikTok dengan perintah .tiktok'
     }, { quoted: message });
     return;
   }
-
-  const url = args[0];
 
   try {
     await sock.sendMessage(message.key.remoteJid, {
@@ -32,7 +46,7 @@ export async function execute(ctx) {
       await sock.sendMessage(message.key.remoteJid, {
         video: { url: result.result.video_url },
         caption: `*Judul:* ${result.result.title}\n*Uploader:* ${result.result.username}\n\nPowered by Astralune Bot`,
-        jpegThumbnail: Buffer.from([]) // Thumbnail akan diambil dari video
+        jpegThumbnail: result.result.thumbnail ? { url: result.result.thumbnail } : Buffer.from([])
       }, { quoted: message });
     } else {
       await sock.sendMessage(message.key.remoteJid, {
