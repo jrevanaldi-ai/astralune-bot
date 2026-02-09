@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Session data
+session/
+
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Database backup
+*.db
+*.db-journal

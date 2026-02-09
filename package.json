@@ -1,0 +1,36 @@
+{
+  "name": "astralune-bot",
+  "version": "1.0.0",
+  "description": "WhatsApp Bot powered by Baileys",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jrevanaldi-ai/astralune-bot.git"
+  },
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "baileys",
+    "whatsapp-web",
+    "javascript",
+    "esmodules"
+  ],
+  "author": "Astralune",
+  "license": "MIT",
+  "dependencies": {
+    "@hapi/boom": "^10.0.1",
+    "@whiskeysockets/baileys": "latest",
+    "chalk": "^5.3.0",
+    "qrcode-terminal": "^0.12.0",
+    "moment-timezone": "^0.5.45",
+    "pino": "^8.17.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
