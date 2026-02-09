@@ -8,42 +8,24 @@ export const handler = {
 export async function execute(ctx) {
   const { sock, message, args } = ctx;
 
-  // Cek apakah pesan dikirim dari grup atau channel
-  if (!message.key.remoteJid.endsWith('@g.us') && !message.key.remoteJid.endsWith('@newsletter')) {
+  // Cek apakah pesan dikirim dari channel (newsletter)
+  if (!message.key.remoteJid.endsWith('@newsletter')) {
     await sock.sendMessage(message.key.remoteJid, {
-      text: 'Perintah ini hanya bisa digunakan di grup atau channel WhatsApp.'
+      text: 'Perintah ini hanya bisa digunakan di channel WhatsApp (newsletter).'
     }, { quoted: message });
     return;
   }
 
   try {
-    // Dapatkan metadata grup/channel
-    let metadata;
-    try {
-      metadata = await sock.groupMetadata(message.key.remoteJid);
-    } catch (error) {
-      // Jika bukan grup, mungkin ini adalah channel
-      // Untuk channel, kita hanya bisa mengambil ID dari remoteJid
-      await sock.sendMessage(message.key.remoteJid, {
-        text: `*ID Channel/Grup:* ${message.key.remoteJid}\n\nCatatan: Ini adalah ID dari chat saat ini.`
-      }, { quoted: message });
-      return;
-    }
-
-    // Format informasi channel/grup
+    // Untuk channel (newsletter), kita hanya bisa mengambil ID dari remoteJid
+    // Karena Baileys tidak menyediakan metadata lengkap untuk channel seperti halnya grup
     const channelId = message.key.remoteJid;
-    const channelName = metadata.subject || 'Nama tidak tersedia';
-    const channelDesc = metadata.desc || 'Deskripsi tidak tersedia';
-    const memberCount = metadata.participants ? metadata.participants.length : 'Tidak diketahui';
 
     const responseText = `
-*Informasi Channel/Grup:*
-*ID:* ${channelId}
-*Nama:* ${channelName}
-*Deskripsi:* ${channelDesc}
-*Jumlah Member:* ${memberCount}
+*Informasi Channel:*
+*ID Channel:* ${channelId}
 
-*Catatan:* ID ini bisa digunakan untuk berbagai keperluan administrasi bot.
+*Catatan:* Ini adalah ID unik dari channel WhatsApp ini. ID ini bisa digunakan untuk berbagai keperluan administrasi bot.
     `.trim();
 
     await sock.sendMessage(message.key.remoteJid, {
