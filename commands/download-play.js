@@ -29,13 +29,11 @@ export async function execute(ctx) {
     if (result.status) {
       const { title, channel, duration, views, upload_at, thumbnail, download_url } = result.result;
       
-      // Kirim informasi video dan audio
       await sock.sendMessage(message.key.remoteJid, {
         image: { url: thumbnail },
         caption: `*Judul:* ${title}\n*Channel:* ${channel}\n*Durasi:* ${duration}\n*Views:* ${views}\n*Upload:* ${upload_at}\n\nSedang mengunduh audio...`
       }, { quoted: message });
 
-      // Kirim audio
       await sock.sendMessage(message.key.remoteJid, {
         audio: { url: download_url },
         mimetype: 'audio/mpeg',

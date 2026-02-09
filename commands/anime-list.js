@@ -18,7 +18,7 @@ export async function execute(ctx) {
     const scraper = new AnimeScraper();
     await scraper.fetchAnimeList();
     
-    const latestAnime = scraper.getLatestAnime(10); // Ambil 10 anime terbaru
+    const latestAnime = scraper.getLatestAnime(10);
     
     if (latestAnime.length > 0) {
       let listText = '*Daftar Anime Terbaru:*\n\n';

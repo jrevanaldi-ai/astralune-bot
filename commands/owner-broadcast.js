@@ -20,7 +20,6 @@ export async function execute(ctx) {
   const command = args[0].toLowerCase();
 
   if (command === 'list') {
-    // Tampilkan daftar grup yang diikuti bot
     try {
       const groupData = await sock.groupFetchAllParticipating();
       if (!groupData || Object.keys(groupData).length === 0) {
@@ -30,7 +29,6 @@ export async function execute(ctx) {
         return;
       }
 
-      // Urutkan grup berdasarkan jumlah member (descending)
       const sortedGroups = Object.entries(groupData).sort((a, b) => {
         const membersA = a[1].participants ? a[1].participants.length : 0;
         const membersB = b[1].participants ? b[1].participants.length : 0;
@@ -57,18 +55,13 @@ export async function execute(ctx) {
       }, { quoted: message });
     }
   } else {
-    // Kirim broadcast ke semua grup atau grup tertentu berdasarkan reply
     const broadcastMessage = args.join(' ');
 
-    // Cek apakah pesan ini adalah reply ke daftar grup
     if (message.message.extendedTextMessage?.contextInfo?.quotedMessage) {
-      // Ini adalah reply ke daftar grup, kirim ke grup tertentu
       const quotedMessage = message.message.extendedTextMessage.contextInfo.quotedMessage;
       const quotedText = quotedMessage.conversation || '';
 
-      // Cek apakah pesan yang direply adalah daftar grup
       if (quotedText.includes('Daftar Grup (diurutkan berdasarkan jumlah member):')) {
-        // Ambil angka dari pesan saat ini (reply)
         const targetIndex = parseInt(broadcastMessage.trim());
 
         if (isNaN(targetIndex) || targetIndex < 1) {
@@ -87,7 +80,6 @@ export async function execute(ctx) {
             return;
           }
 
-          // Urutkan grup berdasarkan jumlah member (descending)
           const sortedGroups = Object.entries(groupData).sort((a, b) => {
             const membersA = a[1].participants ? a[1].participants.length : 0;
             const membersB = b[1].participants ? b[1].participants.length : 0;
@@ -101,10 +93,8 @@ export async function execute(ctx) {
             return;
           }
 
-          // Ambil grup target
           const [targetGroupId, targetGroupData] = sortedGroups[targetIndex - 1];
 
-          // Kirim pesan broadcast ke grup tertentu
           await sock.sendMessage(targetGroupId, {
             text: `*Broadcast dari Owner:*\n\n${broadcastMessage}`,
             contextInfo: {
@@ -134,7 +124,6 @@ export async function execute(ctx) {
       }
     }
 
-    // Jika bukan reply ke daftar grup, kirim ke semua grup
     try {
       const groupData = await sock.groupFetchAllParticipating();
       const groupIds = Object.keys(groupData || {});
@@ -153,7 +142,6 @@ export async function execute(ctx) {
       let successCount = 0;
       let failCount = 0;
 
-      // Kirim pesan ke setiap grup
       for (const groupId of groupIds) {
         try {
           await sock.sendMessage(groupId, {

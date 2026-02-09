@@ -1,10 +1,5 @@
 import axios from 'axios';
 
-/**
- * YouTube Play Scraper
- * @param {String} query - Pencarian judul lagu/video
- * @returns {Object} - Hasil pencarian dan informasi download
- */
 async function ytPlay(query) {
   try {
     const response = await axios.get('https://api.elrayyxml.web.id/api/downloader/ytplay', {

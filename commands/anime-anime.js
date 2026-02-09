@@ -30,14 +30,12 @@ export async function execute(ctx) {
     const searchResults = scraper.searchAnime(query);
     
     if (searchResults.length > 0) {
-      // Ambil hasil pertama untuk ditampilkan
       const anime = searchResults[0];
       const detail = await scraper.getAnimeDetail(anime.url);
       
       let detailText = `*${detail.title}*\n\n`;
       detailText += `*Status:* ${anime.status}\n`;
       
-      // Tambahkan informasi detail dari objek detail
       for (const [key, value] of Object.entries(detail.detail)) {
         detailText += `*${key}:* ${value}\n`;
       }
@@ -45,10 +43,9 @@ export async function execute(ctx) {
       detailText += `\n*Sinopsis:*\n${detail.sinopsis}\n\n`;
       detailText += `*Jumlah Episode:* ${detail.episodes.length}\n`;
       
-      // Tampilkan beberapa episode terbaru
       if (detail.episodes.length > 0) {
         detailText += `\n*Beberapa Episode Terbaru:*\n`;
-        const latestEpisodes = detail.episodes.slice(0, 5); // Ambil 5 episode terbaru
+        const latestEpisodes = detail.episodes.slice(0, 5);
         for (const episode of latestEpisodes) {
           detailText += `- ${episode.title} (${episode.date})\n`;
         }

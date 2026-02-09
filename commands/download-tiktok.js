@@ -12,11 +12,9 @@ export async function execute(ctx) {
 
   let url = args[0];
   
-  // Jika tidak ada URL di argumen, cek apakah ada pesan yang direply
   if (!url && message.message.extendedTextMessage?.contextInfo?.quotedMessage) {
     const quotedMessage = message.message.extendedTextMessage.contextInfo.quotedMessage;
     
-    // Cek apakah pesan yang direply berisi URL TikTok
     if (quotedMessage.conversation) {
       const quotedText = quotedMessage.conversation;
       const tiktokUrlMatch = quotedText.match(/https?:\/\/(www\.)?tiktok\.com\/.*/i);
@@ -38,11 +36,9 @@ export async function execute(ctx) {
       text: 'Sedang mengunduh video TikTok, mohon tunggu...'
     }, { quoted: message });
 
-    // Panggil fungsi dari scraper TikTok
     const result = await snaptikDown(url);
 
     if (result.status) {
-      // Kirim video TikTok
       await sock.sendMessage(message.key.remoteJid, {
         video: { url: result.result.video_url },
         caption: `*Judul:* ${result.result.title}\n*Uploader:* ${result.result.username}\n\nPowered by Astralune Bot`,
