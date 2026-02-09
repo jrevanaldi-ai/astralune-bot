@@ -11,7 +11,6 @@ export async function execute(ctx) {
   const { sock, message } = ctx;
 
   try {
-    // Ambil nomor owner dari konfigurasi
     const ownerNumbers = config.ownerNumber;
     
     if (!ownerNumbers || ownerNumbers.length === 0) {
@@ -24,7 +23,6 @@ export async function execute(ctx) {
     let ownerText = '*Owner Bot:*\n\n';
     
     for (const [index, number] of ownerNumbers.entries()) {
-      // Format nomor: ganti 62 jadi +62
       const formattedNumber = number.startsWith('62') ? '+' + number : number;
       
       ownerText += `*${index + 1}.* ${formattedNumber}\n`;
