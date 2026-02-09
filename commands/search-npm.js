@@ -8,7 +8,6 @@ export const handler = {
   owner: false
 };
 
-// Fungsi untuk mencari paket npm
 async function searchNpmPackages(query) {
   try {
     const response = await axios.get(`https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(query)}&size=5`);

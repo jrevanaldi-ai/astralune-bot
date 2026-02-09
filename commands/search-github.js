@@ -8,7 +8,6 @@ export const handler = {
   owner: false
 };
 
-// Fungsi untuk mencari repositori GitHub
 async function searchGitHubRepos(query) {
   try {
     const response = await axios.get(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=5`);
