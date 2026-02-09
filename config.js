@@ -7,7 +7,7 @@ const __dirname = dirname(__filename);
 export const config = {
   botName: 'Astralune Bot',
   
-  ownerNumber: ['223454951375057'], // Ganti dengan nomor owner
+  ownerNumber: ['6289526974458'], // Ganti dengan nomor owner
   
   prefixes: ['.', ','],
   
