@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 
 export const handler = {
   tag: 'tools',
-  cmd: ['tools-fetch'],
+  cmd: ['fetch'],
   aliases: ['get'],
   owner: false
 };

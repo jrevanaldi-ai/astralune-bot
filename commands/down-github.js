@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 
 export const handler = {
   tag: 'download',
-  cmd: ['down-github'],
+  cmd: ['github-zip'],
   aliases: ['github-down'],
   owner: false
 };
