@@ -57,9 +57,21 @@ loadCommands().then(loadedCommands => {
 
 export async function handler(sock, message) {
   try {
-    if (!message.message || !message.message.conversation) return;
+    // Cek apakah pesan memiliki konten teks
+    if (!message.message) return;
+    
+    // Cek berbagai jenis pesan teks
+    let text = '';
+    if (message.message.conversation) {
+      text = message.message.conversation;
+    } else if (message.message.extendedTextMessage?.text) {
+      text = message.message.extendedTextMessage.text;
+    } else {
+      // Jika bukan pesan teks, keluar
+      return;
+    }
 
-    const text = message.message.conversation.trim();
+    text = text.trim();
 
     let prefix = null;
     for (const p of config.prefixes) {
@@ -133,7 +145,7 @@ export async function handler(sock, message) {
       const owner = config.ownerNumber[0];
       try {
         await sock.sendMessage(`${owner}@s.whatsapp.net`, {
-          text: `Error: ${error.message}\n\nFrom: ${message.key.remoteJid}\nMessage: ${message.message?.conversation || '[Media Message]'}`
+          text: `Error: ${error.message}\n\nFrom: ${message.key.remoteJid}\nMessage: ${message.message?.conversation || message.message?.extendedTextMessage?.text || '[Media Message]'}`
         });
       } catch (sendError) {
         console.error('Failed to send error to owner:', sendError);
