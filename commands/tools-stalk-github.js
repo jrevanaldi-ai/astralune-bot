@@ -2,8 +2,8 @@ import axios from 'axios';
 
 export const handler = {
   tag: 'tools',
-  cmd: ['github-stalk', 'gh-stalk'],
-  aliases: ['stalk-gh'],
+  cmd: ['github-stalk'],
+  aliases: ['gh-stalk'],
   owner: false
 };
 
