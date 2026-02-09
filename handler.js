@@ -96,13 +96,29 @@ export async function handler(sock, message) {
       isAdmin: false
     };
 
-    // Hanya ambil metadata grup jika diperlukan oleh perintah
-    if (ctx.isGroup && command.handler.requiresAdmin) {
+    // Ambil informasi admin secara async dan non-blocking jika diperlukan
+    if (ctx.isGroup) {
+      // Ambil informasi admin grup secara async untuk menghindari blocking
       try {
-        ctx.groupMetadata = await sock.groupMetadata(message.key.remoteJid);
-        ctx.isAdmin = ctx.groupMetadata.participants.some(
-          participant => participant.id === sender && participant.admin
+        // Gunakan promise race untuk menghindari timeout di grup besar
+        const groupMetadataPromise = sock.groupMetadata(message.key.remoteJid);
+        
+        // Tambahkan timeout untuk menghindari delay lama
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout getting group metadata')), 3000)
         );
+        
+        try {
+          ctx.groupMetadata = await Promise.race([groupMetadataPromise, timeoutPromise]);
+          
+          // Cek apakah pengguna adalah admin
+          ctx.isAdmin = ctx.groupMetadata.participants.some(
+            participant => participant.id === sender && participant.admin
+          );
+        } catch (timeoutError) {
+          console.warn('Timeout getting group metadata, proceeding without admin info:', timeoutError.message);
+          // Lanjutkan tanpa informasi admin jika timeout
+        }
       } catch (error) {
         console.error('Error getting group metadata:', error);
       }

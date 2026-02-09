@@ -4,8 +4,7 @@ export const handler = {
   tag: 'news',
   cmd: ['wiki'],
   aliases: ['wikipedia'],
-  owner: false,
-  requiresAdmin: false
+  owner: false
 };
 
 async function getWikiSummary(query) {

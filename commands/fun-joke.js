@@ -4,8 +4,7 @@ export const handler = {
   tag: 'fun',
   cmd: ['joke'],
   aliases: ['jokes'],
-  owner: false,
-  requiresAdmin: false
+  owner: false
 };
 
 async function getJoke() {
