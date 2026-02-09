@@ -11,7 +11,8 @@ export const handler = {
   tag: 'download',
   cmd: ['github-zip'],
   aliases: ['github-down'],
-  owner: false
+  owner: false,
+  requiresAdmin: false
 };
 
 async function downloadGithubRepo(repoUrl, outputPath) {

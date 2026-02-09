@@ -4,7 +4,8 @@ export const handler = {
   tag: 'fun',
   cmd: ['meme'],
   aliases: ['memes'],
-  owner: false
+  owner: false,
+  requiresAdmin: false
 };
 
 async function getMeme() {

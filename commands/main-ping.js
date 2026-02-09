@@ -4,7 +4,8 @@ export const handler = {
   tag: 'main',
   cmd: ['ping'],
   aliases: ['p'],
-  owner: false
+  owner: false,
+  requiresAdmin: false
 };
 
 export async function execute(ctx) {

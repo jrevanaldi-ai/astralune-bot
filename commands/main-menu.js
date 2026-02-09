@@ -5,7 +5,8 @@ export const handler = {
   tag: 'main',
   cmd: ['menu'],
   aliases: ['help'],
-  owner: false
+  owner: false,
+  requiresAdmin: false
 };
 
 export async function execute(ctx) {

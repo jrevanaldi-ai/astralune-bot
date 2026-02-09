@@ -60,7 +60,7 @@ export async function handler(sock, message) {
     if (!message.message || !message.message.conversation) return;
 
     const text = message.message.conversation.trim();
-    
+
     let prefix = null;
     for (const p of config.prefixes) {
       if (text.startsWith(p)) {
@@ -68,23 +68,23 @@ export async function handler(sock, message) {
         break;
       }
     }
-    
+
     if (!prefix) return;
-    
+
     const args = text.slice(prefix.length).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
-    
+
     if (!commands[commandName]) {
       return;
     }
-    
+
     const command = commands[commandName];
-    
+
     const sender = message.key.fromMe ? config.ownerNumber[0] : message.key.remoteJid.replace('@s.whatsapp.net', '');
     if (command.handler.owner && !config.ownerNumber.includes(sender)) {
       return;
     }
-    
+
     const ctx = {
       sock,
       message,
@@ -95,8 +95,9 @@ export async function handler(sock, message) {
       groupMetadata: null,
       isAdmin: false
     };
-    
-    if (ctx.isGroup) {
+
+    // Hanya ambil metadata grup jika diperlukan oleh perintah
+    if (ctx.isGroup && command.handler.requiresAdmin) {
       try {
         ctx.groupMetadata = await sock.groupMetadata(message.key.remoteJid);
         ctx.isAdmin = ctx.groupMetadata.participants.some(
@@ -106,17 +107,17 @@ export async function handler(sock, message) {
         console.error('Error getting group metadata:', error);
       }
     }
-    
+
     console.log(`Executing command: ${commandName}`);
     await command.execute(ctx);
-    
+
   } catch (error) {
     console.error('Handler error:', error);
     if (config.ownerNumber.length > 0) {
       const owner = config.ownerNumber[0];
       try {
-        await sock.sendMessage(`${owner}@s.whatsapp.net`, { 
-          text: `Error: ${error.message}\n\nFrom: ${message.key.remoteJid}\nMessage: ${message.message?.conversation || '[Media Message]'}` 
+        await sock.sendMessage(`${owner}@s.whatsapp.net`, {
+          text: `Error: ${error.message}\n\nFrom: ${message.key.remoteJid}\nMessage: ${message.message?.conversation || '[Media Message]'}`
         });
       } catch (sendError) {
         console.error('Failed to send error to owner:', sendError);
