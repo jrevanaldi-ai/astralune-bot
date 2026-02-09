@@ -32,5 +32,17 @@ Uptime: ${uptime} minutes
 Powered by bot.astralune.cv
   `.trim();
 
-  await sock.sendMessage(message.key.remoteJid, { text: infoText }, { quoted: message });
+  await sock.sendMessage(message.key.remoteJid, {
+    text: infoText,
+    contextInfo: {
+      externalAdReply: {
+        title: 'Astralune Bot Info',
+        body: `System Information for ${hostname}`,
+        thumbnailUrl: 'https://github.com/jrevanaldi-ai/images/blob/main/astralune.png?raw=true',
+        sourceUrl: 'https://github.com/jrevanaldi-ai/astralune',
+        mediaType: 1,
+        renderLargerThumbnail: true
+      }
+    }
+  }, { quoted: message });
 }

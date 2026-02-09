@@ -18,6 +18,16 @@ export async function execute(ctx) {
   const serverTime = getTime();
 
   await sock.sendMessage(message.key.remoteJid, {
-    text: `Pong! 🏓\nLatency: ${latency}ms\nServer Time: ${serverTime}`
+    text: `Pong! 🏓\nLatency: ${latency}ms\nServer Time: ${serverTime}`,
+    contextInfo: {
+      externalAdReply: {
+        title: 'Astralune Bot Ping',
+        body: `Latency: ${latency}ms`,
+        thumbnailUrl: 'https://github.com/jrevanaldi-ai/images/blob/main/astralune.png?raw=true',
+        sourceUrl: 'https://github.com/jrevanaldi-ai/astralune',
+        mediaType: 1,
+        renderLargerThumbnail: true
+      }
+    }
   }, { quoted: message });
 }

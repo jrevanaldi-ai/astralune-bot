@@ -51,6 +51,18 @@ export async function execute(ctx) {
   }
   
   menuText += 'Powered by bot.astralune.cv';
-  
-  await sock.sendMessage(message.key.remoteJid, { text: menuText }, { quoted: message });
+
+  await sock.sendMessage(message.key.remoteJid, {
+    text: menuText,
+    contextInfo: {
+      externalAdReply: {
+        title: 'Astralune Bot Menu',
+        body: 'Your all-in-one WhatsApp bot solution',
+        thumbnailUrl: 'https://github.com/jrevanaldi-ai/images/blob/main/astralune.png?raw=true',
+        sourceUrl: 'https://github.com/jrevanaldi-ai/astralune',
+        mediaType: 1,
+        renderLargerThumbnail: true
+      }
+    }
+  }, { quoted: message });
 }
