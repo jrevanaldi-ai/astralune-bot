@@ -2,7 +2,7 @@ import { savetube } from '../scrape/youtube-downloader.js';
 
 export const handler = {
   tag: 'download',
-  cmd: ['ytmp4', 'ytmp3', 'yt'],
+  cmd: ['yt'],
   aliases: ['youtube'],
   owner: false
 };
@@ -12,21 +12,16 @@ export async function execute(ctx) {
 
   if (args.length === 0) {
     await sock.sendMessage(message.key.remoteJid, {
-      text: 'Gunakan perintah ini untuk mengunduh video/audio dari YouTube.\nContoh:\n.ytmp4 <url> (untuk video)\n.ytmp3 <url> (untuk audio)'
+      text: 'Gunakan perintah ini untuk mengunduh video/audio dari YouTube.\nContoh:\n.yt <url> (untuk audio)\n.yt <url> <kualitas> (untuk video)'
     }, { quoted: message });
     return;
   }
 
   const url = args[0];
-  const command = ctx.command;
-
-  // Tentukan format berdasarkan perintah
   let format = 'mp3'; // default
-  if (command === 'ytmp4' || args[1]) {
-    // Jika perintah adalah ytmp4 atau argumen kedua disediakan
-    format = args[1] || '360'; // default kualitas video 360p
-  } else if (command === 'ytmp3') {
-    format = 'mp3';
+  
+  if (args[1]) {
+    format = args[1]; // gunakan argumen kedua sebagai kualitas video
   }
 
   try {
@@ -39,7 +34,6 @@ export async function execute(ctx) {
 
     if (result.status) {
       if (format === 'mp3') {
-        // Kirim audio
         await sock.sendMessage(message.key.remoteJid, {
           audio: { url: result.dl },
           mimetype: 'audio/mpeg',
@@ -56,7 +50,6 @@ export async function execute(ctx) {
           }
         }, { quoted: message });
       } else {
-        // Kirim video
         await sock.sendMessage(message.key.remoteJid, {
           video: { url: result.dl },
           caption: `*Judul:* ${result.title}\n*Kualitas:* ${result.format}p\n*Durasi:* ${result.duration}\n\nPowered by Astralune Bot`,
