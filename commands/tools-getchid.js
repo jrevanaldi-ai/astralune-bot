@@ -10,7 +10,7 @@ export async function execute(ctx) {
 
   if (args.length === 0) {
     await sock.sendMessage(message.key.remoteJid, {
-      text: 'Gunakan perintah ini untuk mendapatkan ID channel dari URL channel WhatsApp.\nContoh: .getchid https://whatsapp.com/newsletter/CHANNEL_ID'
+      text: 'Gunakan perintah ini untuk mendapatkan ID channel dari URL channel WhatsApp.\nContoh: .getchid https://whatsapp.com/channel/0029VayDvvwKAwEf3GrHDT0u'
     }, { quoted: message });
     return;
   }
@@ -22,7 +22,7 @@ export async function execute(ctx) {
     let channelId = null;
     
     // Cocokkan pola URL channel WhatsApp
-    const channelUrlPattern = /(?:https?:\/\/)?(?:www\.)?whatsapp\.com\/newsletter\/([A-Za-z0-9._-]+)/i;
+    const channelUrlPattern = /(?:https?:\/\/)?(?:www\.)?whatsapp\.com\/channel\/([A-Za-z0-9._-]+)/i;
     const match = url.match(channelUrlPattern);
     
     if (match && match[1]) {
@@ -37,7 +37,7 @@ export async function execute(ctx) {
       } else {
         // Jika tidak dalam format URL atau ID langsung, beri tahu pengguna
         await sock.sendMessage(message.key.remoteJid, {
-          text: 'Format URL tidak valid. Gunakan format: https://whatsapp.com/newsletter/CHANNEL_ID'
+          text: 'Format URL tidak valid. Gunakan format: https://whatsapp.com/channel/CHANNEL_ID'
         }, { quoted: message });
         return;
       }
