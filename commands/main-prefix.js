@@ -3,8 +3,8 @@ import { config } from '../config.js';
 
 export const handler = {
   tag: 'main',
-  cmd: ['setprefix', 'prefix'],
-  aliases: ['ubahprefix', 'gantiprefix'],
+  cmd: ['setprefix'],
+  aliases: ['ubahprefix'],
   owner: true
 };
 

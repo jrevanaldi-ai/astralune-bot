@@ -2,7 +2,7 @@ import { getTime } from '../helper/index.js';
 
 export const handler = {
   tag: 'main',
-  cmd: 'ping',
+  cmd: ['ping'],
   aliases: ['p'],
   owner: false
 };

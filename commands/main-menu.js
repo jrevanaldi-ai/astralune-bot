@@ -3,8 +3,8 @@ import path from 'path';
 
 export const handler = {
   tag: 'main',
-  cmd: ['menu', 'help'],
-  aliases: ['list', 'command'],
+  cmd: ['menu'],
+  aliases: ['help'],
   owner: false
 };
 

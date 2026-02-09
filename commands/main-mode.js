@@ -2,7 +2,7 @@ import { isOwner } from '../helper/index.js';
 
 export const handler = {
   tag: 'main',
-  cmd: ['self', 'public'],
+  cmd: ['self'],
   aliases: ['mode'],
   owner: true
 };

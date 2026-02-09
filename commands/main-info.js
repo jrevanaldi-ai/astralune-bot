@@ -3,8 +3,8 @@ import { formatNumber } from '../utils/index.js';
 
 export const handler = {
   tag: 'main',
-  cmd: ['info', 'information', 'server'],
-  aliases: ['specs', 'system'],
+  cmd: ['info'],
+  aliases: ['specs'],
   owner: false
 };
 
