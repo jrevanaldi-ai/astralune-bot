@@ -8,24 +8,26 @@ export const handler = {
 export async function execute(ctx) {
   const { sock, message, args } = ctx;
 
-  // Cek apakah pesan dikirim dari channel (newsletter)
-  if (!message.key.remoteJid.endsWith('@newsletter')) {
-    await sock.sendMessage(message.key.remoteJid, {
-      text: 'Perintah ini hanya bisa digunakan di channel WhatsApp (newsletter).'
-    }, { quoted: message });
-    return;
-  }
-
   try {
-    // Untuk channel (newsletter), kita hanya bisa mengambil ID dari remoteJid
-    // Karena Baileys tidak menyediakan metadata lengkap untuk channel seperti halnya grup
-    const channelId = message.key.remoteJid;
+    // Ambil ID dari chat saat ini (bisa private chat, grup, atau channel)
+    const chatId = message.key.remoteJid;
+
+    // Deteksi jenis chat
+    let chatType = 'Private Chat';
+    if (chatId.endsWith('@g.us')) {
+      chatType = 'Group';
+    } else if (chatId.endsWith('@newsletter')) {
+      chatType = 'Newsletter Channel';
+    } else if (chatId.endsWith('@s.whatsapp.net')) {
+      chatType = 'Private Chat';
+    }
 
     const responseText = `
-*Informasi Channel:*
-*ID Channel:* ${channelId}
+*Informasi Chat Saat Ini:*
+*Jenis:* ${chatType}
+*ID:* ${chatId}
 
-*Catatan:* Ini adalah ID unik dari channel WhatsApp ini. ID ini bisa digunakan untuk berbagai keperluan administrasi bot.
+*Catatan:* Ini adalah ID unik dari chat ini. ID ini bisa digunakan untuk berbagai keperluan administrasi bot.
     `.trim();
 
     await sock.sendMessage(message.key.remoteJid, {
@@ -33,9 +35,9 @@ export async function execute(ctx) {
     }, { quoted: message });
 
   } catch (error) {
-    console.error('Get Channel ID error:', error);
+    console.error('Get Chat ID error:', error);
     await sock.sendMessage(message.key.remoteJid, {
-      text: `Terjadi kesalahan saat mengambil informasi channel: ${error.message}`
+      text: `Terjadi kesalahan saat mengambil informasi chat: ${error.message}`
     }, { quoted: message });
   }
 }
