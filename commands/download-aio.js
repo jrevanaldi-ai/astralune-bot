@@ -24,19 +24,34 @@ export async function execute(ctx) {
       text: 'Sedang mengunduh media, mohon tunggu...'
     }, { quoted: message });
 
+    await sock.sendMessage(message.key.remoteJid, {
+      text: 'Mendeteksi tipe media...'
+    }, { quoted: message });
+
     // Panggil fungsi dari scraper
     const result = await downloadFromUrl(url);
     
     if (result && result.type && result.url) {
+      // Tampilkan informasi hasil deteksi
+      console.log('Media detected:', {
+        type: result.type,
+        mimetype: result.mimetype,
+        url: result.url,
+        platform: result.platform,
+        quality: result.quality
+      });
+      
       if (result.type === 'video') {
         await sock.sendMessage(message.key.remoteJid, {
           video: { url: result.url },
-          caption: result.title ? `*Judul:* ${result.title}` : 'Video berhasil diunduh',
+          caption: result.title ? 
+            `*Judul:* ${result.title}\n*Platform:* ${result.platform || 'Unknown'}\n*Kualitas:* ${result.quality || 'Unknown'}` : 
+            `Video berhasil diunduh\n*Platform:* ${result.platform || 'Unknown'}\n*Kualitas:* ${result.quality || 'Unknown'}`,
           mimetype: result.mimetype || 'video/mp4',
           contextInfo: {
             externalAdReply: {
               title: result.title || 'Video Download',
-              body: 'Downloaded via Astralune Bot',
+              body: `Platform: ${result.platform || 'Unknown'} | Quality: ${result.quality || 'Unknown'}`,
               thumbnailUrl: result.thumbnail || 'https://github.com/jrevanaldi-ai/images/blob/main/astralune.png?raw=true',
               sourceUrl: url,
               mediaType: 1,
@@ -48,11 +63,13 @@ export async function execute(ctx) {
         await sock.sendMessage(message.key.remoteJid, {
           audio: { url: result.url },
           mimetype: result.mimetype || 'audio/mpeg',
-          caption: result.title ? `*Judul:* ${result.title}` : 'Audio berhasil diunduh',
+          caption: result.title ? 
+            `*Judul:* ${result.title}\n*Platform:* ${result.platform || 'Unknown'}\n*Durasi:* ${result.duration ? Math.floor(result.duration / 1000) + ' detik' : 'Unknown'}` : 
+            `Audio berhasil diunduh\n*Platform:* ${result.platform || 'Unknown'}`,
           contextInfo: {
             externalAdReply: {
               title: result.title || 'Audio Download',
-              body: 'Downloaded via Astralune Bot',
+              body: `Platform: ${result.platform || 'Unknown'} | Duration: ${result.duration ? Math.floor(result.duration / 1000) + 's' : 'Unknown'}`,
               thumbnailUrl: result.thumbnail || 'https://github.com/jrevanaldi-ai/images/blob/main/astralune.png?raw=true',
               sourceUrl: url,
               mediaType: 1,
@@ -63,11 +80,13 @@ export async function execute(ctx) {
       } else if (result.type === 'image') {
         await sock.sendMessage(message.key.remoteJid, {
           image: { url: result.url },
-          caption: result.title ? `*Judul:* ${result.title}` : 'Gambar berhasil diunduh',
+          caption: result.title ? 
+            `*Judul:* ${result.title}\n*Platform:* ${result.platform || 'Unknown'}` : 
+            `Gambar berhasil diunduh\n*Platform:* ${result.platform || 'Unknown'}`,
           contextInfo: {
             externalAdReply: {
               title: result.title || 'Image Download',
-              body: 'Downloaded via Astralune Bot',
+              body: `Platform: ${result.platform || 'Unknown'}`,
               thumbnailUrl: result.url,
               sourceUrl: url,
               mediaType: 1,
@@ -80,7 +99,9 @@ export async function execute(ctx) {
         await sock.sendMessage(message.key.remoteJid, {
           document: { url: result.url },
           fileName: result.filename || 'media',
-          caption: result.title ? `*Judul:* ${result.title}` : 'Media berhasil diunduh',
+          caption: result.title ? 
+            `*Judul:* ${result.title}\n*Platform:* ${result.platform || 'Unknown'}\n*Tipe File:* ${result.mimetype || 'Unknown'}` : 
+            `Media berhasil diunduh\n*Platform:* ${result.platform || 'Unknown'}`,
           mimetype: result.mimetype || 'application/octet-stream'
         }, { quoted: message });
       }

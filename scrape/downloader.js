@@ -125,11 +125,17 @@ export async function downloadFromUrl(url) {
             }
         }
         
+        // Untuk video TikTok, kita harus memastikan format kompatibel dengan WhatsApp
+        if (url.includes('tiktok.com') && mediaType === 'video') {
+            mimeType = 'video/mp4'; // Paksa ke format MP4 untuk kompatibilitas
+            extension = '.mp4';
+        }
+        
         // Buat nama file yang aman
         const cleanTitle = result.title ? result.title.replace(/[\/\\:*?"<>|]/g, '_').replace(/[^\w\s-]/g, '') : 'media';
         const filename = cleanTitle + extension;
         
-        // Kembalikan informasi media
+        // Kembalikan informasi media lengkap
         return {
             url: result.url,
             title: result.title,
@@ -138,7 +144,15 @@ export async function downloadFromUrl(url) {
             thumbnail: result.thumbnail,
             type: mediaType,
             filename: filename,
-            mimetype: mimeType
+            mimetype: mimeType,
+            // Tambahkan informasi tambahan
+            platform: url.includes('tiktok.com') ? 'TikTok' : 
+                      url.includes('youtube.com') || url.includes('youtu.be') ? 'YouTube' :
+                      url.includes('instagram.com') ? 'Instagram' : 'Other',
+            quality: result.medias ? result.medias.length > 0 ? 
+                     result.medias.reduce((prev, current) => 
+                       (prev.quality || 0) > (current.quality || 0) ? prev : current
+                     ).quality || 'unknown' : 'unknown' : 'unknown'
         };
     } catch (error) {
         console.error('Error downloading from URL:', error);
