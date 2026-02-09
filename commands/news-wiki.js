@@ -9,12 +9,20 @@ export const handler = {
 
 async function getWikiSummary(query) {
   try {
-    const response = await axios.get(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+    // Coba endpoint API Wikipedia yang berbeda
+    const response = await axios.get(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`, {
+      headers: {
+        'User-Agent': 'Astralune-Bot/1.0 (https://github.com/jrevanaldi-ai/astralune)'
+      }
+    });
     return response.data;
   } catch (error) {
     if (error.response && error.response.status === 404) {
       throw new Error('Artikel tidak ditemukan di Wikipedia.');
+    } else if (error.response && error.response.status === 429) {
+      throw new Error('Terlalu banyak permintaan ke Wikipedia. Silakan coba lagi nanti.');
     } else {
+      console.error('Wiki API error:', error);
       throw new Error('Gagal mengambil data dari Wikipedia. Silakan coba lagi nanti.');
     }
   }
@@ -39,10 +47,15 @@ export async function execute(ctx) {
 
     const wikiData = await getWikiSummary(query);
 
+    // Validasi data yang diterima
+    if (!wikiData || !wikiData.title) {
+      throw new Error('Data dari Wikipedia tidak valid.');
+    }
+
     const title = wikiData.title;
-    const extract = wikiData.extract;
+    const extract = wikiData.extract || 'Tidak ada ringkasan tersedia.';
     const imageUrl = wikiData.thumbnail?.source;
-    const url = wikiData.content_urls?.desktop.page;
+    const url = wikiData.content_urls?.desktop.page || `https://en.wikipedia.org/wiki/${encodeURIComponent(query)}`;
 
     let wikiText = `📚 *Wikipedia: ${title}*\n\n${extract}`;
 

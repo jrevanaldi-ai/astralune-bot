@@ -9,9 +9,10 @@ export const handler = {
 
 async function getMeme() {
   try {
-    const response = await axios.get('https://meme-api.herokuapp.com/gimme');
+    const response = await axios.get('https://meme-api.com/gimme');
     return response.data;
   } catch (error) {
+    console.error('Meme API error:', error);
     throw new Error('Gagal mengambil meme. Silakan coba lagi nanti.');
   }
 }
@@ -26,15 +27,20 @@ export async function execute(ctx) {
 
     const memeData = await getMeme();
 
+    // Pastikan data meme valid
+    if (!memeData || !memeData.url) {
+      throw new Error('Data meme tidak valid diterima dari API.');
+    }
+
     await sock.sendMessage(message.key.remoteJid, {
       image: { url: memeData.url },
-      caption: `*Title:* ${memeData.title}\n*Subreddit:* ${memeData.subreddit}\n*Author:* ${memeData.author}`,
+      caption: `*Title:* ${memeData.title || 'Untitled'}\n*Subreddit:* ${memeData.subreddit || 'N/A'}\n*Author:* ${memeData.author || 'Unknown'}`,
       contextInfo: {
         externalAdReply: {
           title: 'Random Meme',
-          body: memeData.title,
+          body: memeData.title || 'Random Meme',
           thumbnailUrl: memeData.url,
-          sourceUrl: memeData.postLink,
+          sourceUrl: memeData.postLink || memeData.url,
           mediaType: 1,
           renderLargerThumbnail: true
         }
