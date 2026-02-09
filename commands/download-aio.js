@@ -32,11 +32,12 @@ export async function execute(ctx) {
         await sock.sendMessage(message.key.remoteJid, {
           video: { url: result.url },
           caption: result.title ? `*Judul:* ${result.title}` : 'Video berhasil diunduh',
+          mimetype: result.mimetype || 'video/mp4',
           contextInfo: {
             externalAdReply: {
               title: result.title || 'Video Download',
               body: 'Downloaded via Astralune Bot',
-              thumbnailUrl: 'https://github.com/jrevanaldi-ai/images/blob/main/astralune.png?raw=true',
+              thumbnailUrl: result.thumbnail || 'https://github.com/jrevanaldi-ai/images/blob/main/astralune.png?raw=true',
               sourceUrl: url,
               mediaType: 1,
               renderLargerThumbnail: true
@@ -46,13 +47,13 @@ export async function execute(ctx) {
       } else if (result.type === 'audio') {
         await sock.sendMessage(message.key.remoteJid, {
           audio: { url: result.url },
-          mimetype: 'audio/mpeg',
+          mimetype: result.mimetype || 'audio/mpeg',
           caption: result.title ? `*Judul:* ${result.title}` : 'Audio berhasil diunduh',
           contextInfo: {
             externalAdReply: {
               title: result.title || 'Audio Download',
               body: 'Downloaded via Astralune Bot',
-              thumbnailUrl: 'https://github.com/jrevanaldi-ai/images/blob/main/astralune.png?raw=true',
+              thumbnailUrl: result.thumbnail || 'https://github.com/jrevanaldi-ai/images/blob/main/astralune.png?raw=true',
               sourceUrl: url,
               mediaType: 1,
               renderLargerThumbnail: true
