@@ -12,7 +12,6 @@ export const handler = {
 export async function execute(ctx) {
   const { sock, message } = ctx;
 
-  // Informasi sistem
   const hostname = os.hostname();
   const platform = os.platform();
   const arch = os.arch();
@@ -23,23 +22,19 @@ export async function execute(ctx) {
   const usedMemory = formatNumber(os.totalmem() - os.freemem());
   const memoryUsagePercent = ((os.totalmem() - os.freemem()) / os.totalmem() * 100).toFixed(2);
   
-  // Uptime dalam format yang lebih informatif
   const uptimeSeconds = os.uptime();
   const days = Math.floor(uptimeSeconds / 86400);
   const hours = Math.floor((uptimeSeconds % 86400) / 3600);
   const minutes = Math.floor((uptimeSeconds % 3600) / 60);
   
-  // Informasi Node.js
   const nodeVersion = process.version;
   const nodeUptime = process.uptime();
   const nodeUptimeMinutes = Math.floor(nodeUptime / 60);
   
-  // Informasi bot
   const botName = config.botName;
   const prefixes = config.prefixes.join(', ');
   const ownerNumber = config.ownerNumber[0];
   
-  // Informasi CPU
   const cpuLoad = os.loadavg();
   
   const infoText = `
