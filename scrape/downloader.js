@@ -68,6 +68,67 @@ export async function downloadFromUrl(url) {
         const scraper = new DownrScraper();
         const result = await scraper.getVideoInfo(url);
         
+        // Deteksi tipe media berdasarkan URL dan informasi dari response
+        let mediaType = 'video';
+        let mimeType = 'video/mp4';
+        let extension = '.mp4';
+        
+        // Deteksi tipe media berdasarkan URL
+        if (result.url.includes('.mp3') || result.url.includes('audio')) {
+            mediaType = 'audio';
+            mimeType = 'audio/mpeg';
+            extension = '.mp3';
+        } else if (result.url.includes('.jpg') || result.url.includes('.jpeg') || result.url.includes('.png') || result.url.includes('.gif')) {
+            mediaType = 'image';
+            mimeType = 'image/jpeg'; // default to jpeg, will be adjusted based on actual file
+            extension = '.jpg';
+        } else if (result.url.includes('.mp4') || result.url.includes('.mov') || result.url.includes('.avi')) {
+            mediaType = 'video';
+            mimeType = 'video/mp4';
+            extension = '.mp4';
+        } else if (result.url.includes('.pdf')) {
+            mediaType = 'document';
+            mimeType = 'application/pdf';
+            extension = '.pdf';
+        } else if (result.url.includes('.doc') || result.url.includes('.docx')) {
+            mediaType = 'document';
+            mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            extension = '.docx';
+        } else if (result.url.includes('.zip') || result.url.includes('.rar') || result.url.includes('.7z')) {
+            mediaType = 'document';
+            mimeType = 'application/zip';
+            extension = '.zip';
+        }
+        
+        // Jika result.medias tersedia, kita bisa mendapatkan info lebih detail
+        if (result.medias && Array.isArray(result.medias) && result.medias.length > 0) {
+            // Ambil media dengan kualitas tertinggi
+            const highestQualityMedia = result.medias.reduce((prev, current) => {
+                return (prev.quality || 0) > (current.quality || 0) ? prev : current;
+            });
+            
+            if (highestQualityMedia) {
+                // Deteksi tipe berdasarkan format atau mime type dari media
+                if (highestQualityMedia.format && (highestQualityMedia.format.includes('audio') || highestQualityMedia.mime_type === 'audio/mp4' || highestQualityMedia.mime_type === 'audio/mpeg')) {
+                    mediaType = 'audio';
+                    mimeType = highestQualityMedia.mime_type || 'audio/mpeg';
+                    extension = '.mp3';
+                } else if (highestQualityMedia.format && (highestQualityMedia.format.includes('image') || highestQualityMedia.mime_type?.includes('image'))) {
+                    mediaType = 'image';
+                    mimeType = highestQualityMedia.mime_type || 'image/jpeg';
+                    extension = '.jpg';
+                } else if (highestQualityMedia.format && (highestQualityMedia.format.includes('video') || highestQualityMedia.mime_type?.includes('video'))) {
+                    mediaType = 'video';
+                    mimeType = highestQualityMedia.mime_type || 'video/mp4';
+                    extension = '.mp4';
+                }
+            }
+        }
+        
+        // Buat nama file yang aman
+        const cleanTitle = result.title ? result.title.replace(/[\/\\:*?"<>|]/g, '_') : 'media';
+        const filename = cleanTitle + extension;
+        
         // Kembalikan informasi media
         return {
             url: result.url,
@@ -75,9 +136,9 @@ export async function downloadFromUrl(url) {
             author: result.author,
             duration: result.duration,
             thumbnail: result.thumbnail,
-            type: 'video', // Kita asumsikan sebagai video untuk sekarang
-            filename: result.title ? result.title.replace(/[\/\\:*?"<>|]/g, '_') + '.mp4' : 'video.mp4',
-            mimetype: 'video/mp4'
+            type: mediaType,
+            filename: filename,
+            mimetype: mimeType
         };
     } catch (error) {
         console.error('Error downloading from URL:', error);
