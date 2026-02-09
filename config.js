@@ -33,5 +33,10 @@ export const config = {
     autoRead: true,
     antiDelete: false,
     multiDevice: true
+  },
+  
+  welcome: {
+    welcomeOn: true,
+    leaveOn: true
   }
 };

@@ -1,11 +1,12 @@
 import { Boom } from '@hapi/boom';
-import { 
-  makeWASocket, 
-  DisconnectReason, 
+import {
+  makeWASocket,
+  DisconnectReason,
   useMultiFileAuthState,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
-  Browsers
+  Browsers,
+  WAMessageStubType
 } from '@whiskeysockets/baileys';
 import fs from 'fs';
 import path from 'path';
@@ -18,6 +19,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import Pino from 'pino';
 import { logger, logIncomingMessage } from './utils/index.js';
+import { createWelcomeImage, createLeaveImage } from './lib/welcome-leave.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -172,6 +174,68 @@ async function connectToWhatsApp() {
           const pollCreation = await sock.pollUpdate(key, update.pollUpdates);
           logger.info('Poll update received:', pollCreation);
         }
+      }
+    }
+    
+    // Group update events (join/leave)
+    if (events['group-participants.update']) {
+      const { id, participants, action } = events['group-participants.update'];
+      
+      // Cek apakah welcome/leave aktif di config
+      if (!config.welcome.welcomeOn && !config.welcome.leaveOn) {
+        return;
+      }
+      
+      try {
+        const groupMetadata = await sock.groupMetadata(id);
+        const groupName = groupMetadata.subject;
+        
+        for (const participant of participants) {
+          // Ambil info pengguna
+          const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:${participant}\nORG:User\nEND:VCARD`;
+          
+          // Dapatkan foto profil pengguna
+          let profilePicUrl;
+          try {
+            profilePicUrl = await sock.profilePictureUrl(participant, 'image');
+          } catch {
+            // Gunakan default jika tidak bisa mendapatkan foto profil
+            profilePicUrl = 'https://github.com/jrevanaldi-ai/images/blob/main/astralune.png?raw=true';
+          }
+          
+          // Dapatkan nama pengguna
+          let displayName;
+          try {
+            const contact = await sock.getContact(participant);
+            displayName = contact.notify || contact.vname || contact.name || participant.split('@')[0];
+          } catch {
+            displayName = participant.split('@')[0];
+          }
+          
+          if (action === 'add' && config.welcome.welcomeOn) {
+            // Pembuatan gambar welcome
+            const welcomeImage = await createWelcomeImage(displayName, profilePicUrl, groupName);
+            
+            // Kirim pesan welcome dengan gambar
+            await sock.sendMessage(id, {
+              image: welcomeImage,
+              caption: `Haii @${participant.split('@')[0]} 👋\n\nSelamat Datang Di Grup ${groupName}\n\nSemoga Betah Disini 😊`,
+              mentions: [participant]
+            });
+          } else if (action === 'remove' && config.welcome.leaveOn) {
+            // Pembuatan gambar leave
+            const leaveImage = await createLeaveImage(displayName, profilePicUrl, groupName);
+            
+            // Kirim pesan leave dengan gambar
+            await sock.sendMessage(id, {
+              image: leaveImage,
+              caption: `@${participant.split('@')[0]} Telah Meninggalkan Grup ${groupName}\n\nSelamat Tinggal Jelek~~~ 😢`,
+              mentions: [participant]
+            });
+          }
+        }
+      } catch (error) {
+        logger.error('Error handling group-participants.update:', error);
       }
     }
   });
