@@ -21,3 +21,6 @@ Thumbs.db
 # Database backup
 *.db
 *.db-journal
+
+# Analysis folder
+analisis/
