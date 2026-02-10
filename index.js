@@ -41,7 +41,6 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-// Aktifkan sistem serialize
 serialize();
 
 async function connectToWhatsApp() {
@@ -64,7 +63,6 @@ async function connectToWhatsApp() {
     pairingCode: true
   });
 
-  // Tambahkan fungsi reply
   sock.reply = async (jid, text = "", quoted, options = {}) => {
     return sock.sendMessage(
       jid,
@@ -74,12 +72,11 @@ async function connectToWhatsApp() {
       },
       {
         quoted,
-        ephemeralExpiration: 86400, // 24 jam
+        ephemeralExpiration: 86400,
       }
     );
   };
 
-  // Tambahkan fungsi download media
   sock.downloadM = async (m, type) => {
     if (!m || !(m.url || m.directPath)) return Buffer.alloc(0);
 
@@ -169,7 +166,6 @@ async function connectToWhatsApp() {
       const upsert = events['messages.upsert'];
       if (upsert.type === 'notify') {
         for (const msg of upsert.messages) {
-          // Gunakan smsg untuk serialize pesan
           const serializedMsg = smsg(sock, msg);
           
           logIncomingMessage(serializedMsg, serializedMsg.key.remoteJid, serializedMsg.key.remoteJid?.endsWith('@g.us'));

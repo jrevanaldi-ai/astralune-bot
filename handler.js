@@ -60,11 +60,9 @@ export async function handler(sock, message) {
     if (!message.message) return;
 
     let text = '';
-    
-    // Mengenali berbagai jenis pesan
+
     const messageContent = message.message;
-    
-    // Cek berbagai jenis pesan teks
+
     if (messageContent.conversation) {
       text = messageContent.conversation;
     } else if (messageContent.extendedTextMessage?.text) {
@@ -74,12 +72,10 @@ export async function handler(sock, message) {
     } else if (messageContent.videoMessage?.caption) {
       text = messageContent.videoMessage.caption;
     } else if (messageContent.audioMessage) {
-      // Untuk pesan audio, kita bisa mengekstrak teks jika ada
       text = messageContent.audioMessage.caption || '';
     } else if (messageContent.documentMessage?.caption) {
       text = messageContent.documentMessage.caption;
     } else if (messageContent.stickerMessage) {
-      // Untuk pesan stiker, biasanya tidak ada teks, tapi kita tetap coba
       text = '';
     } else if (messageContent.contactMessage) {
       text = messageContent.contactMessage.displayName || '';
@@ -94,14 +90,12 @@ export async function handler(sock, message) {
     } else if (messageContent.buttonsMessage) {
       text = messageContent.buttonsMessage.contentText || messageContent.buttonsMessage.caption || '';
     } else if (messageContent.templateMessage) {
-      text = messageContent.templateMessage.hydratedTemplate?.hydratedContentText || 
+      text = messageContent.templateMessage.hydratedTemplate?.hydratedContentText ||
              messageContent.templateMessage.hydratedTemplate?.hydratedFooterText || '';
     } else {
-      // Jika tidak ada teks yang ditemukan, coba ekstrak dari pesan lain
       text = '';
     }
 
-    // Jika tidak ada teks yang ditemukan, cek apakah ini pesan viewOnce
     if (!text && messageContent.viewOnceMessage?.message) {
       const viewOnceMsg = messageContent.viewOnceMessage.message;
       if (viewOnceMsg.imageMessage?.caption) {
@@ -115,7 +109,6 @@ export async function handler(sock, message) {
 
     text = text.trim();
 
-    // Cek apakah pesan dimulai dengan prefix
     let prefix = null;
     for (const p of config.prefixes) {
       if (text.startsWith(p)) {
@@ -126,9 +119,7 @@ export async function handler(sock, message) {
 
     if (!prefix) return;
 
-    // Cek apakah ini perintah eval khusus (dimulai dengan =>)
     if (text.startsWith('=>')) {
-      // Ini adalah perintah eval khusus, tangani secara terpisah
       const sender = message.key.fromMe ? config.ownerNumber[0] : message.key.remoteJid.replace('@s.whatsapp.net', '').replace('@lid', '');
       const senderNumber = sender.split('@')[0];
       const isOwner = message.key.fromMe || config.ownerNumber.some(owner => {
@@ -137,10 +128,9 @@ export async function handler(sock, message) {
       });
 
       if (!isOwner) {
-        return; // Jangan merespons jika bukan owner
+        return;
       }
-      
-      // Eksekusi eval
+
       const code = text.substring(2).trim();
       if (!code) {
         await sock.sendMessage(message.key.remoteJid, {
@@ -148,17 +138,17 @@ export async function handler(sock, message) {
         }, { quoted: message });
         return;
       }
-      
+
       try {
         let evaled = await eval(`(async () => { return ${code} })()`);
-        
+
         if (evaled instanceof Promise) {
           evaled = await evaled;
         }
 
         const util = await import('util');
         const result = typeof evaled !== 'string' ? util.default.inspect(evaled, { depth: 0 }) : evaled;
-        
+
         await sock.sendMessage(message.key.remoteJid, {
           text: result.substring(0, 4000)
         }, { quoted: message });
@@ -168,9 +158,9 @@ export async function handler(sock, message) {
         }, { quoted: message });
         console.error(error);
       }
-      return; // Keluar karena ini adalah perintah eval khusus
+      return;
     }
-    
+
     const args = text.slice(prefix.length).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
 
@@ -188,7 +178,7 @@ export async function handler(sock, message) {
     });
 
     if (command.handler.owner && !isOwner) {
-      return; // Jangan merespons jika bukan owner
+      return;
     }
 
     const ctx = {
@@ -248,5 +238,4 @@ export async function reloadCommands() {
   console.log(`Reloaded ${Object.keys(commands).length} commands`);
 }
 
-// Ekspor fungsi untuk digunakan di command lain
 global.reloadCommands = reloadCommands;

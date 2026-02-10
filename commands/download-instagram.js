@@ -17,7 +17,6 @@ export async function execute(ctx) {
 
   const url = args[0];
 
-  // Validasi URL Instagram
   const instagramRegex = /https?:\/\/(www\.)?instagram\.com\/[^\s]+/;
   if (!instagramRegex.test(url)) {
     await sock.sendMessage(message.key.remoteJid, {
@@ -31,7 +30,6 @@ export async function execute(ctx) {
       text: 'Sedang mengunduh dari Instagram, mohon tunggu...'
     }, { quoted: message });
 
-    // Gunakan API yang sama seperti di Liora
     const response = await fetch(`https://api-faa.my.id/faa/igdl?url=${encodeURIComponent(url)}`);
     const result = await response.json();
 
@@ -51,9 +49,7 @@ export async function execute(ctx) {
       return;
     }
 
-    // Kirim media satu per satu
     for (const mediaUrl of urls) {
-      // Cek apakah URL adalah video atau gambar
       const isVideo = /\.(mp4|mov|avi|mkv)$/i.test(mediaUrl);
       
       if (isVideo) {
