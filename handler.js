@@ -60,16 +60,62 @@ export async function handler(sock, message) {
     if (!message.message) return;
 
     let text = '';
-    if (message.message.conversation) {
-      text = message.message.conversation;
-    } else if (message.message.extendedTextMessage?.text) {
-      text = message.message.extendedTextMessage.text;
+    
+    // Mengenali berbagai jenis pesan
+    const messageContent = message.message;
+    
+    // Cek berbagai jenis pesan teks
+    if (messageContent.conversation) {
+      text = messageContent.conversation;
+    } else if (messageContent.extendedTextMessage?.text) {
+      text = messageContent.extendedTextMessage.text;
+    } else if (messageContent.imageMessage?.caption) {
+      text = messageContent.imageMessage.caption;
+    } else if (messageContent.videoMessage?.caption) {
+      text = messageContent.videoMessage.caption;
+    } else if (messageContent.audioMessage) {
+      // Untuk pesan audio, kita bisa mengekstrak teks jika ada
+      text = messageContent.audioMessage.caption || '';
+    } else if (messageContent.documentMessage?.caption) {
+      text = messageContent.documentMessage.caption;
+    } else if (messageContent.stickerMessage) {
+      // Untuk pesan stiker, biasanya tidak ada teks, tapi kita tetap coba
+      text = '';
+    } else if (messageContent.contactMessage) {
+      text = messageContent.contactMessage.displayName || '';
+    } else if (messageContent.locationMessage) {
+      text = messageContent.locationMessage.name || 'Location shared';
+    } else if (messageContent.viewOnceMessage?.message?.imageMessage?.caption) {
+      text = messageContent.viewOnceMessage.message.imageMessage.caption;
+    } else if (messageContent.viewOnceMessage?.message?.videoMessage?.caption) {
+      text = messageContent.viewOnceMessage.message.videoMessage.caption;
+    } else if (messageContent.listMessage) {
+      text = messageContent.listMessage.description || '';
+    } else if (messageContent.buttonsMessage) {
+      text = messageContent.buttonsMessage.contentText || messageContent.buttonsMessage.caption || '';
+    } else if (messageContent.templateMessage) {
+      text = messageContent.templateMessage.hydratedTemplate?.hydratedContentText || 
+             messageContent.templateMessage.hydratedTemplate?.hydratedFooterText || '';
     } else {
-      return;
+      // Jika tidak ada teks yang ditemukan, coba ekstrak dari pesan lain
+      text = '';
+    }
+
+    // Jika tidak ada teks yang ditemukan, cek apakah ini pesan viewOnce
+    if (!text && messageContent.viewOnceMessage?.message) {
+      const viewOnceMsg = messageContent.viewOnceMessage.message;
+      if (viewOnceMsg.imageMessage?.caption) {
+        text = viewOnceMsg.imageMessage.caption;
+      } else if (viewOnceMsg.videoMessage?.caption) {
+        text = viewOnceMsg.videoMessage.caption;
+      } else if (viewOnceMsg.extendedTextMessage?.text) {
+        text = viewOnceMsg.extendedTextMessage.text;
+      }
     }
 
     text = text.trim();
 
+    // Cek apakah pesan dimulai dengan prefix
     let prefix = null;
     for (const p of config.prefixes) {
       if (text.startsWith(p)) {
@@ -136,7 +182,7 @@ export async function handler(sock, message) {
       const owner = config.ownerNumber[0];
       try {
         await sock.sendMessage(`${owner}@s.whatsapp.net`, {
-          text: `Error: ${error.message}\n\nFrom: ${message.key.remoteJid}\nMessage: ${message.message?.conversation || message.message?.extendedTextMessage?.text || '[Media Message]'}`
+          text: `Error: ${error.message}\n\nFrom: ${message.key.remoteJid}\nMessage: ${(message.message?.conversation || message.message?.extendedTextMessage?.text || message.message?.imageMessage?.caption || message.message?.videoMessage?.caption || '[Media Message]').substring(0, 100)}`
         });
       } catch (sendError) {
         console.error('Failed to send error to owner:', sendError);
