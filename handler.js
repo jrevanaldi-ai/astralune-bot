@@ -133,9 +133,9 @@ export async function handler(sock, message) {
       const senderNumber = sender.split('@')[0];
       const isOwner = message.key.fromMe || config.ownerNumber.some(owner => {
         const ownerNumber = owner.toString().split('@')[0];
-        return senderNumber === ownerNumber;
+        return senderNumber === ownerNumber || sender === owner.toString();
       });
-      
+
       if (!isOwner) {
         return; // Jangan merespons jika bukan owner
       }
@@ -184,9 +184,9 @@ export async function handler(sock, message) {
     const senderNumber = sender.split('@')[0];
     const isOwner = message.key.fromMe || config.ownerNumber.some(owner => {
       const ownerNumber = owner.toString().split('@')[0];
-      return senderNumber === ownerNumber;
+      return senderNumber === ownerNumber || sender === owner.toString();
     });
-    
+
     if (command.handler.owner && !isOwner) {
       return; // Jangan merespons jika bukan owner
     }
