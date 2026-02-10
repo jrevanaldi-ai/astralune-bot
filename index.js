@@ -20,6 +20,8 @@ import { dirname } from 'path';
 import Pino from 'pino';
 import { logger, logIncomingMessage } from './utils/index.js';
 import { createWelcomeImage, createLeaveImage } from './lib/welcome-leave.js';
+import { smsg } from './lib/core/smsg.js';
+import { serialize } from './lib/core/serialize.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -39,6 +41,8 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
+// Aktifkan sistem serialize
+serialize();
 
 async function connectToWhatsApp() {
   const { state, saveCreds } = await useMultiFileAuthState(config.sessionPath);
@@ -59,6 +63,40 @@ async function connectToWhatsApp() {
     syncFullHistory: true,
     pairingCode: true
   });
+
+  // Tambahkan fungsi reply
+  sock.reply = async (jid, text = "", quoted, options = {}) => {
+    return sock.sendMessage(
+      jid,
+      {
+        text,
+        ...options,
+      },
+      {
+        quoted,
+        ephemeralExpiration: 86400, // 24 jam
+      }
+    );
+  };
+
+  // Tambahkan fungsi download media
+  sock.downloadM = async (m, type) => {
+    if (!m || !(m.url || m.directPath)) return Buffer.alloc(0);
+
+    try {
+      const { downloadContentFromMessage } = await import('@whiskeysockets/baileys');
+      const stream = await downloadContentFromMessage(m, type);
+      const chunks = [];
+
+      for await (const chunk of stream) {
+        chunks.push(chunk);
+      }
+
+      return Buffer.concat(chunks);
+    } catch {
+      return Buffer.alloc(0);
+    }
+  };
 
   if (!sock.authState.creds.registered) {
     try {
@@ -131,17 +169,20 @@ async function connectToWhatsApp() {
       const upsert = events['messages.upsert'];
       if (upsert.type === 'notify') {
         for (const msg of upsert.messages) {
-          logIncomingMessage(msg, msg.key.remoteJid, msg.key.remoteJid?.endsWith('@g.us'));
+          // Gunakan smsg untuk serialize pesan
+          const serializedMsg = smsg(sock, msg);
+          
+          logIncomingMessage(serializedMsg, serializedMsg.key.remoteJid, serializedMsg.key.remoteJid?.endsWith('@g.us'));
 
           try {
-            await handler(sock, msg);
+            await handler(sock, serializedMsg);
           } catch (error) {
             logger.error('Error processing message:', error);
 
             if (config.ownerNumber.length > 0) {
               const owner = config.ownerNumber[0];
               await sock.sendMessage(`${owner}@s.whatsapp.net`, {
-                text: `Error: ${error.message}\n\nFrom: ${msg.key.remoteJid}\nMessage: ${msg.message?.conversation || '[Media Message]'}`
+                text: `Error: ${error.message}\n\nFrom: ${serializedMsg.key.remoteJid}\nMessage: ${serializedMsg.message?.conversation || '[Media Message]'}`
               });
             }
           }
