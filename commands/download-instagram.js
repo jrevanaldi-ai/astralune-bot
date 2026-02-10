@@ -1,5 +1,5 @@
 export const handler = {
-  tag: 'downloader',
+  tag: 'download',
   cmd: ['ig', 'instagram'],
   aliases: ['igdl', 'instadl'],
   owner: false
@@ -50,18 +50,47 @@ export async function execute(ctx) {
     }
 
     for (const mediaUrl of urls) {
-      const isVideo = /\.(mp4|mov|avi|mkv)$/i.test(mediaUrl);
-      
-      if (isVideo) {
+      // Coba deteksi jenis media dari header atau ekstensi
+      try {
+        const headResponse = await fetch(mediaUrl, { method: 'HEAD' });
+        const contentType = headResponse.headers.get('content-type');
+        
+        if (contentType && contentType.startsWith('video/')) {
+          await sock.sendMessage(message.key.remoteJid, {
+            video: { url: mediaUrl },
+            caption: 'Video dari Instagram',
+            mimetype: contentType
+          }, { quoted: message });
+        } else if (contentType && contentType.startsWith('image/')) {
+          await sock.sendMessage(message.key.remoteJid, {
+            image: { url: mediaUrl },
+            caption: 'Gambar dari Instagram',
+            mimetype: contentType
+          }, { quoted: message });
+        } else {
+          // Jika tidak bisa deteksi dari header, coba dari ekstensi
+          const isVideo = /\.(mp4|mov|avi|mkv|webm)$/i.test(mediaUrl);
+          
+          if (isVideo) {
+            await sock.sendMessage(message.key.remoteJid, {
+              video: { url: mediaUrl },
+              caption: 'Video dari Instagram',
+              mimetype: 'video/mp4'
+            }, { quoted: message });
+          } else {
+            await sock.sendMessage(message.key.remoteJid, {
+              image: { url: mediaUrl },
+              caption: 'Gambar dari Instagram',
+              mimetype: 'image/jpeg'
+            }, { quoted: message });
+          }
+        }
+      } catch (mediaError) {
+        // Jika gagal deteksi jenis media, coba kirim sebagai document
         await sock.sendMessage(message.key.remoteJid, {
-          video: { url: mediaUrl },
-          caption: 'Video dari Instagram',
-          mimetype: 'video/mp4'
-        }, { quoted: message });
-      } else {
-        await sock.sendMessage(message.key.remoteJid, {
-          image: { url: mediaUrl },
-          caption: 'Gambar dari Instagram'
+          document: { url: mediaUrl },
+          fileName: 'media_instagram',
+          caption: 'Media dari Instagram (terkirim sebagai dokumen karena tidak bisa dideteksi jenisnya)'
         }, { quoted: message });
       }
     }
