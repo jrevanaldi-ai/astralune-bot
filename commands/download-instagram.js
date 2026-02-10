@@ -50,7 +50,6 @@ export async function execute(ctx) {
     }
 
     for (const mediaUrl of urls) {
-      // Coba deteksi jenis media dari header atau ekstensi
       try {
         const headResponse = await fetch(mediaUrl, { method: 'HEAD' });
         const contentType = headResponse.headers.get('content-type');
@@ -68,7 +67,6 @@ export async function execute(ctx) {
             mimetype: contentType
           }, { quoted: message });
         } else {
-          // Jika tidak bisa deteksi dari header, coba dari ekstensi
           const isVideo = /\.(mp4|mov|avi|mkv|webm)$/i.test(mediaUrl);
           
           if (isVideo) {
@@ -86,7 +84,6 @@ export async function execute(ctx) {
           }
         }
       } catch (mediaError) {
-        // Jika gagal deteksi jenis media, coba kirim sebagai document
         await sock.sendMessage(message.key.remoteJid, {
           document: { url: mediaUrl },
           fileName: 'media_instagram',
