@@ -126,6 +126,51 @@ export async function handler(sock, message) {
 
     if (!prefix) return;
 
+    // Cek apakah ini perintah eval khusus (dimulai dengan =>)
+    if (text.startsWith('=>')) {
+      // Ini adalah perintah eval khusus, tangani secara terpisah
+      const sender = message.key.fromMe ? config.ownerNumber[0] : message.key.remoteJid.replace('@s.whatsapp.net', '').replace('@lid', '');
+      const senderNumber = sender.split('@')[0];
+      const isOwner = message.key.fromMe || config.ownerNumber.some(owner => {
+        const ownerNumber = owner.toString().split('@')[0];
+        return senderNumber === ownerNumber;
+      });
+      
+      if (!isOwner) {
+        return; // Jangan merespons jika bukan owner
+      }
+      
+      // Eksekusi eval
+      const code = text.substring(2).trim();
+      if (!code) {
+        await sock.sendMessage(message.key.remoteJid, {
+          text: 'Gunakan perintah ini untuk mengevaluasi ekspresi JavaScript.\nContoh: => 1+1'
+        }, { quoted: message });
+        return;
+      }
+      
+      try {
+        let evaled = await eval(`(async () => { return ${code} })()`);
+        
+        if (evaled instanceof Promise) {
+          evaled = await evaled;
+        }
+
+        const util = await import('util');
+        const result = typeof evaled !== 'string' ? util.default.inspect(evaled, { depth: 0 }) : evaled;
+        
+        await sock.sendMessage(message.key.remoteJid, {
+          text: result.substring(0, 4000)
+        }, { quoted: message });
+      } catch (error) {
+        await sock.sendMessage(message.key.remoteJid, {
+          text: `Error: ${error.message}`
+        }, { quoted: message });
+        console.error(error);
+      }
+      return; // Keluar karena ini adalah perintah eval khusus
+    }
+    
     const args = text.slice(prefix.length).trim().split(/ +/);
     const commandName = args.shift().toLowerCase();
 
@@ -135,9 +180,15 @@ export async function handler(sock, message) {
 
     const command = commands[commandName];
 
-    const sender = message.key.fromMe ? config.ownerNumber[0] : message.key.remoteJid.replace('@s.whatsapp.net', '');
-    if (command.handler.owner && !config.ownerNumber.includes(sender)) {
-      return;
+    const sender = message.key.fromMe ? config.ownerNumber[0] : message.key.remoteJid.replace('@s.whatsapp.net', '').replace('@lid', '');
+    const senderNumber = sender.split('@')[0];
+    const isOwner = message.key.fromMe || config.ownerNumber.some(owner => {
+      const ownerNumber = owner.toString().split('@')[0];
+      return senderNumber === ownerNumber;
+    });
+    
+    if (command.handler.owner && !isOwner) {
+      return; // Jangan merespons jika bukan owner
     }
 
     const ctx = {
@@ -148,7 +199,8 @@ export async function handler(sock, message) {
       sender,
       isGroup: message.key.remoteJid.endsWith('@g.us'),
       groupMetadata: null,
-      isAdmin: false
+      isAdmin: false,
+      isOwner
     };
 
     if (ctx.isGroup) {
@@ -182,7 +234,7 @@ export async function handler(sock, message) {
       const owner = config.ownerNumber[0];
       try {
         await sock.sendMessage(`${owner}@s.whatsapp.net`, {
-          text: `Error: ${error.message}\n\nFrom: ${message.key.remoteJid}\nMessage: ${(message.message?.conversation || message.message?.extendedTextMessage?.text || message.message?.imageMessage?.caption || message.message?.videoMessage?.caption || '[Media Message]').substring(0, 100)}`
+          text: `Error: ${error.message}\n\nFrom: ${message.key.remoteJid}\nMessage: ${(message.message?.conversation || message.message?.extendedTextMessage?.text || message.message?.imageMessage?.caption || message.message?.videoMessage?.caption || message.message?.viewOnceMessage?.message?.imageMessage?.caption || message.message?.viewOnceMessage?.message?.videoMessage?.caption || '[Media Message]').substring(0, 100)}`
         });
       } catch (sendError) {
         console.error('Failed to send error to owner:', sendError);
@@ -195,3 +247,6 @@ export async function reloadCommands() {
   commands = await loadCommands();
   console.log(`Reloaded ${Object.keys(commands).length} commands`);
 }
+
+// Ekspor fungsi untuk digunakan di command lain
+global.reloadCommands = reloadCommands;
