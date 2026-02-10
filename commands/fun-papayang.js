@@ -13,7 +13,6 @@ export async function execute(ctx) {
       text: 'Sedang mengambil gambar papayang, mohon tunggu...'
     }, { quoted: message });
 
-    // Gunakan API yang disediakan
     const response = await fetch('https://api-faa.my.id/faa/papayang');
     
     if (!response.ok) {
@@ -23,11 +22,9 @@ export async function execute(ctx) {
       return;
     }
 
-    // Ambil array buffer dari response
     const arrayBuffer = await response.arrayBuffer();
     const imageBuffer = Buffer.from(arrayBuffer);
     
-    // Kirim gambar sebagai pesan
     await sock.sendMessage(message.key.remoteJid, {
       image: imageBuffer,
       caption: 'Gambar Papayang',
