@@ -1,4 +1,5 @@
 import { sticker } from '../lib/sticker.js';
+import { downloadContentFromMessage } from '@whiskeysockets/baileys';
 
 export const handler = {
   tag: 'tool',
@@ -22,7 +23,13 @@ export async function execute(ctx) {
 
   if (type === 'imageMessage') {
     try {
-      const media = await sock.downloadMediaMessage(quoted[type === 'imageMessage' ? type : Object.keys(quoted)[0]]);
+      const mediaBuffer = [];
+      const stream = await downloadContentFromMessage(quoted.imageMessage, 'image');
+      for await (const chunk of stream) {
+        mediaBuffer.push(chunk);
+      }
+      const media = Buffer.concat(mediaBuffer);
+      
       const stickerBuffer = await sticker(media, {
         packName: 'Astralune Sticker',
         authorName: 'Astralune Bot',
@@ -38,7 +45,7 @@ export async function execute(ctx) {
       }, { quoted: message });
     }
   } else if (type === 'videoMessage') {
-    if (quoted[type].seconds > 10) {
+    if (quoted.videoMessage.seconds > 10) {
       await sock.sendMessage(message.key.remoteJid, {
         text: 'Video terlalu panjang! Maksimal 10 detik.'
       }, { quoted: message });
@@ -46,7 +53,13 @@ export async function execute(ctx) {
     }
     
     try {
-      const media = await sock.downloadMediaMessage(quoted[type]);
+      const mediaBuffer = [];
+      const stream = await downloadContentFromMessage(quoted.videoMessage, 'video');
+      for await (const chunk of stream) {
+        mediaBuffer.push(chunk);
+      }
+      const media = Buffer.concat(mediaBuffer);
+      
       const stickerBuffer = await sticker(media, {
         packName: 'Astralune Sticker',
         authorName: 'Astralune Bot',

@@ -1,4 +1,5 @@
 import { uploader } from '../lib/uploader.js';
+import { downloadContentFromMessage } from '@whiskeysockets/baileys';
 
 export const handler = {
   tag: 'tool',
@@ -26,7 +27,36 @@ export async function execute(ctx) {
         text: 'Sedang mengupload file, mohon tunggu...'
       }, { quoted: message });
       
-      const media = await sock.downloadMediaMessage(quoted[type === 'imageMessage' ? type : Object.keys(quoted)[0]]);
+      let mediaBuffer = [];
+      let messageType = '';
+      
+      if (type === 'imageMessage') {
+        messageType = 'image';
+        const stream = await downloadContentFromMessage(quoted.imageMessage, 'image');
+        for await (const chunk of stream) {
+          mediaBuffer.push(chunk);
+        }
+      } else if (type === 'videoMessage') {
+        messageType = 'video';
+        const stream = await downloadContentFromMessage(quoted.videoMessage, 'video');
+        for await (const chunk of stream) {
+          mediaBuffer.push(chunk);
+        }
+      } else if (type === 'audioMessage') {
+        messageType = 'audio';
+        const stream = await downloadContentFromMessage(quoted.audioMessage, 'audio');
+        for await (const chunk of stream) {
+          mediaBuffer.push(chunk);
+        }
+      } else if (type === 'documentMessage') {
+        messageType = 'document';
+        const stream = await downloadContentFromMessage(quoted.documentMessage, 'document');
+        for await (const chunk of stream) {
+          mediaBuffer.push(chunk);
+        }
+      }
+      
+      const media = Buffer.concat(mediaBuffer);
       const result = await uploader(media);
       
       if (result.success) {
